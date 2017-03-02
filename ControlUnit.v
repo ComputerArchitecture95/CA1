@@ -1,11 +1,12 @@
 module ControlUnit(
-	input start, clk, endFlag, eqFlag, input [32:0] nBus,
+	input start, clk, endFlag, eqFlag, input [31:0] nBus,
 	output reg ldX1, ldX2, ldt, ldW1, initW1, ldW2, initW2, ldB,
 		initB, ldYin, initEndFlag, ldEndFlag, doneSignal, readyToGetData
+		, updateState, reinitializingState
 	);
 
 	reg [2:0] ns, ps;
-	reg [32:0] n, cnt;
+	reg [31:0] n, cnt;
 	reg cntUp, initCnt, co;
 	parameter [2:0] waiting=0, initializing=1, getData=2, computeYin=3,
 		updateWiAndBias=4, reinitializing=5, done=6; 
@@ -28,7 +29,8 @@ module ControlUnit(
 							ns=reinitializing;
 						else
 							ns=done;
-			updateWiAndBias:
+			updateWiAndBias: begin																															
+				$display("%d %d", co, endFlag);
 				if (co == 0)
 					ns=getData;
 				else
@@ -36,6 +38,7 @@ module ControlUnit(
 						ns=done;
 					else
 						ns=reinitializing;
+				end
 			reinitializing: ns=getData;
 			done: ns=waiting;
 		endcase
@@ -43,8 +46,8 @@ module ControlUnit(
 
 	// setting controller signals
 	always @(*) begin
-		{ldX1, ldX2, ldt, ldW1, initW1, ldW2, initW2, ldB, initB, readyToGetData,
-		 ldYin, initCnt, cntUp, initEndFlag, doneSignal, ldEndFlag} = 16'b0;
+		{ldX1, ldX2, ldt, ldW1, initW1, ldW2, initW2, ldB, initB, readyToGetData,ldYin, initCnt, cntUp,
+		 initEndFlag, doneSignal, ldEndFlag, updateState, reinitializingState} = 18'b0;
 		case(ps)
 			initializing: begin
 				initW1=1'b1;
@@ -71,6 +74,7 @@ module ControlUnit(
 				ldW1=1'b1;
 				ldW2=1'b1;
 				ldB=1'b1;
+				updateState=1'b1;
 				if (!co)
 					readyToGetData=1'b1;
 			end
@@ -78,6 +82,7 @@ module ControlUnit(
 				initCnt=1'b1;
 				initEndFlag=1'b1;
 				readyToGetData=1'b1;
+				reinitializingState=1'b1;
 			end
 			done: doneSignal=1'b1;
 		endcase
@@ -94,7 +99,7 @@ module ControlUnit(
 			cnt <= 32'b0;
 		if (cntUp)
 			cnt <= cnt + 1;
-		co <= (cnt == n) ? 1'b1 : 1'b0;
+		co <= (cnt == (n-1)) ? 1'b1 : 1'b0;
 	end
 
 endmodule
