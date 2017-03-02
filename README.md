@@ -1,5 +1,5 @@
 # CA1
 
-* Contributers: *
+### Contributers:
 * Mohammad Reza Kiani
 * Ahmadreza Saboor
