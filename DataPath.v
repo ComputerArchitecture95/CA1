@@ -13,25 +13,25 @@ module DataPath( input[6:0] X1Bus, X2Bus, input[1:0] tBus, input clk,
 	wire signed [1:0] sign;
 
 	// X1 Register
-	always @(posedge clk) begin
+	always @(posedge clk or ldX1) begin
 		if(ldX1)
 			X1 <= X1Bus;
 	end
 
 	// X2 Register
-	always @(posedge clk) begin
+	always @(posedge clk or ldX2) begin
 		if(ldX2)
 			X2 <= X2Bus;
 	end
 
 	// t Register
-	always @(posedge clk) begin
+	always @(posedge clk or ldt) begin
 		if(ldt)
 			t <= tBus;
 	end	
 
 	// W1 Register
-	always @(posedge clk or initW1) begin
+	always @(posedge clk or initW1 or ldW1) begin
 		if(initW1)
 			W1 <= 14'b0;
 		if(ldW1)
@@ -39,7 +39,7 @@ module DataPath( input[6:0] X1Bus, X2Bus, input[1:0] tBus, input clk,
 	end
 
 	// W2 Register
-	always @(posedge clk or initW2) begin
+	always @(posedge clk or initW2 or ldW2) begin
 		if(initW2)
 			W2 <= 14'b0;
 		if(ldW2)
@@ -47,7 +47,7 @@ module DataPath( input[6:0] X1Bus, X2Bus, input[1:0] tBus, input clk,
 	end
 
 	// Bias Register
-	always @(posedge clk or initB) begin
+	always @(posedge clk or initB or ldB) begin
 		if(initB)
 			Bias <= 14'b0;
 		if(ldB)
@@ -55,13 +55,13 @@ module DataPath( input[6:0] X1Bus, X2Bus, input[1:0] tBus, input clk,
 	end
 
 	// Yin Register
-	always @(posedge clk) begin
+	always @(posedge clk or ldYin) begin
 		if(ldYin)
 			Yin <= (X1 * (W1 << 4) + X2 * (W2 << 4)) + Bias;
 	end
 
 	// endFlag Register
-	always @(posedge clk or initEndFlag) begin
+	always @(posedge clk or initEndFlag or ldEndFlag) begin
 		if (initEndFlag)
 			endFlag <= 1'b1;
 		if(ldEndFlag)
