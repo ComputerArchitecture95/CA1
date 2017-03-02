@@ -1,18 +1,20 @@
 module TestBench;
-    signed reg[6:0] X1Bus, X2Bus;
-    signed reg[1:0] tBus;
+    reg signed [6:0] X1Bus, X2Bus;
+    reg signed [1:0] tBus;
     reg clk = 1'b1, start;
-    reg[31:0] nBus;
-    signed wire [13:0] W1, W2, Bias;
+    integer n = 0, i;
+    reg [31:0] nBus;
+
+    wire signed [13:0] W1, W2, Bias;
     wire done, readyToGetData;
 
     NeuronModule NM(X1Bus, X2Bus, tBus, nBus, clk, start, W1, W2, Bias, done, readyToGetData);
 
-    signed reg[6:0] X1Inputs[500:0];
-    signed reg[6:0] X2Inputs[500:0];
-    signed reg[1:0] tInputs[500:0];
-    signed reg[6:0] capturedX1, capturedX2;
-    signed reg[1:0] capturedt;
+    reg signed [6:0] X1Inputs[3:0];
+    reg signed [6:0] X2Inputs[3:0];
+    reg signed [1:0] tInputs[3:0];
+    reg signed [6:0] capturedX1, capturedX2;
+    reg signed [1:0] capturedt;
     integer file;
     // setting clock to pulse every 100ns 
     initial repeat(500) begin
@@ -20,46 +22,42 @@ module TestBench;
         clk = ~clk ;
     end
     
+    always @(posedge clk)begin
+        if (start & n == 0) begin
+            file = $fopen("data_set_s.txt", "r");
+            $display("Here");
+            while(!$feof(file)) begin
+                $fscanf(file, "%b %b %b", capturedX1, capturedX2, capturedt);
+                X1Inputs[n] <= capturedX1;
+                X2Inputs[n] <= capturedX2;
+                tInputs[n] <= capturedt;
+                n = n + 1;
+            end
+            nBus <= n[31:0];
+        end
+    end  
 
-
+    
     initial begin
-        nBus <= 32'b0;
-        file = $fopen("data_set.txt", "r");
-        while(!$feof(file)) {
-            $fscanf(file, "%b %b %b", capturedX1, capturedX2, capturedt);
-            X1Inputs[nBus] <= capturedX1;
-            X2Inputs[nBus] <= capturedX2;
-            capturedt[nBus] <= capturedt;
-            nBus = nBus + 1;
-        }
-
-        #90
+            #90
         start <= 1'b1;
         #100
-        nBus <= 4'h00000005;
+        // nBus
         #100
         start <= 1'b0;
-        X1Bus <= 7'b1110000;
-        X2Bus <= 7'b1110000;
-        tBus <= 2'b11;
-        #100
-        #100
-        #100
-        #100
-
-        $stop;
-    end
-
-    initial begin
         while(!done) begin
-            for (int i = 0; i < nBus; i = i + 1) begin
-                while(!readyToGetData);
-                
-                X1Bus <= X1Inputs[i];
-                X2Bus <= X2Inputs[i];
-                tBus <= tInputs[i];
-                #100
+            i = 0;
+            while(i<n) begin
+                if (readyToGetData) begin
+                    X1Bus <= X1Inputs[i];
+                    X2Bus <= X2Inputs[i];
+                    tBus <= tInputs[i];
+                    i = i + 1;
+                    #100
+                    $display("jallaaaaaal %d %d", n, i);    
+                end
             end
+            $stop;
         end
     end
 

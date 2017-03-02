@@ -53,6 +53,7 @@ module ControlUnit(
 				initCnt=1'b1;
 				initEndFlag=1'b1;
 				n = nBus;
+				readyToGetData=1'b1;
 			end
 			getData: begin
 				ldX1=1'b1;
