@@ -4,9 +4,9 @@ module TestBench;
     reg clk = 1'b1, start;
     reg[31:0] nBus;
     wire [13:0] W1, W2, Bias;
-    wire done;
+    wire done, readyToGetData;
 
-    NeuronModule NM(X1Bus, X2Bus, tBus, nBus, clk, start, W1, W2, Bias, done);
+    NeuronModule NM(X1Bus, X2Bus, tBus, nBus, clk, start, W1, W2, Bias, done, readyToGetData);
 
     reg[6:0] X1Inputs[50:0];
     reg[6:0] X2Inputs[50:0];
@@ -35,4 +35,18 @@ module TestBench;
 
         $stop;
     end
+
+    initial begin
+        while(!done) begin
+            for (int i = 0; i < nBus; i = i + 1) begin
+                while(!readyToGetData);
+                
+                X1Bus <= X1Inputs[i];
+                X2Bus <= X2Inputs[i];
+                tBus <= tInputs[i];
+                #100
+            end
+        end
+    end
+
 endmodule 
