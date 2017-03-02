@@ -8,10 +8,10 @@ module TestBench;
 
     NeuronModule NM(X1Bus, X2Bus, tBus, nBus, clk, start, W1, W2, Bias, done);
 
-    reg[6:0] X1Inputs[50:0];
-    reg[6:0] X2Inputs[50:0];
-    reg[1:0] tInputs[50:0];
-
+    reg[6:0] X1Inputs[500];
+    reg[6:0] X2Inputs[500];
+    reg[1:0] tInputs[500];
+    
     // setting clock to pulse every 100ns 
     initial repeat(500) begin
         #50
@@ -19,6 +19,8 @@ module TestBench;
     end
     
     initial begin
+
+
         #90
         start <= 1'b1;
         #100
